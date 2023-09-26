@@ -1,0 +1,48 @@
+﻿@page "/"
+
+@using System.Text;
+@using Microsoft.SemanticKernel;
+
+@inject IConfiguration Configuration
+
+<PageTitle>Chat</PageTitle>
+
+<h1>Hello, chat!</h1>
+
+<input type="text" @bind="message" />
+
+<br /><br/><br/>
+
+<input cols="75" rows="15" @bind="TotalChat" />
+
+<br/><br/><br/>
+
+<!-- button that calls sendmessage -->
+<button @onclick="SendMessage">Send</button>
+
+@code {
+    private string message = "";
+    private String TotalChat = "";
+    private StringBuilder totalChatBuilder = new();
+
+    private async void SendMessage()
+    {
+        TotalChat = "";
+
+        string aoaiEndpoint = Configuration["AZUREOPENAI_ENDPOINT"];
+        string aoaiKey = Configuration["AZUREOPENAI_API_KEY"];
+        string modelName = "hiking-gpt";
+
+        IKernel kernel = Kernel.Builder
+            .WithAzureChatCompletionService(modelName, aoaiEndpoint, aoaiKey)
+            .Build();
+
+        var response = await kernel.InvokeSemanticFunctionAsync(message);
+
+        //totalChatBuilder.Append(response.ToString());
+
+        TotalChat = response.ToString();
+
+        StateHasChanged();
+    }
+}
